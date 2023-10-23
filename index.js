@@ -3,6 +3,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebas
 import {
   getAuth,
   createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 /* === Firebase Setup === */
 
@@ -42,6 +44,8 @@ const passwordInputEl = document.getElementById("password-input");
 const signInButtonEl = document.getElementById("sign-in-btn");
 const createAccountButtonEl = document.getElementById("create-account-btn");
 
+const signOutButtonEl = document.getElementById("sign-out-btn");
+
 /* == UI - Event Listeners == */
 
 signInWithGoogleButtonEl.addEventListener("click", authSignInWithGoogle);
@@ -49,9 +53,12 @@ signInWithGoogleButtonEl.addEventListener("click", authSignInWithGoogle);
 signInButtonEl.addEventListener("click", authSignInWithEmail);
 createAccountButtonEl.addEventListener("click", authCreateAccountWithEmail);
 
+signOutButtonEl.addEventListener("click", authSignOut);
+
 /* === Main Code === */
 
 showLoggedOutView();
+// showLoggedInView();
 
 /* === Functions === */
 
@@ -62,50 +69,71 @@ function authSignInWithGoogle() {
 }
 
 function authSignInWithEmail() {
-  console.log("Sign in with email and password");
+  const EMAIL = emailInputEl.value;
+  const PASSWORD = passwordInputEl.value;
+  console.log(EMAIL, PASSWORD)
+
+  signInWithEmailAndPassword(auth, EMAIL, PASSWORD)
+    .then((userCredential) => {
+      clearAuthFields()
+      showLoggedInView();
+    })
+    .catch((error) => {
+      console.error(error.message);
+    });
 }
 
 function authCreateAccountWithEmail() {
-  /*  Challenge:
-		Import the createUserWithEmailAndPassword function from 'firebase/auth'
+  const EMAIL = emailInputEl.value;
+  const PASSWORD = passwordInputEl.value;
 
-        Use the code from the documentaion to make this function work.
-        
-        Make sure to first create two consts, 'email' and 'password', to fetch the values from the input fields emailInputEl and passwordInputEl.
-       
-        If the creation of user is successful then you should show the logged in view using showLoggedInView()
-        If something went wrong, then you should log the error message using console.error.
-    */
-    const email = emailInputEl.value
-    const password = passwordInputEl.value
-
-    createUserWithEmailAndPassword(auth, email, password)
+  createUserWithEmailAndPassword(auth, EMAIL, PASSWORD)
     .then((userCredential) => {
-        showLoggedInView();
+      clearAuthFields()
+      showLoggedInView();
     })
     .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.error(errorMessage);
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.error(errorMessage);
     });
+}
+
+function authSignOut() {
+  signOut(auth)
+    .then(() => {
+      showLoggedOutView();
+    })
+    .catch((error) => {
+      console.error(error.message);
+    }); 
 }
 
 /* == Functions - UI Functions == */
 
 function showLoggedOutView() {
-  hideElement(viewLoggedIn);
-  showElement(viewLoggedOut);
+  hideView(viewLoggedIn)
+  showView(viewLoggedOut)
 }
 
 function showLoggedInView() {
-  hideElement(viewLoggedOut);
-  showElement(viewLoggedIn);
+  hideView(viewLoggedOut)
+  showView(viewLoggedIn)
 }
 
-function showElement(element) {
-  element.style.display = "flex";
+function showView(view) {
+  view.style.display = "flex"
 }
 
-function hideElement(element) {
-  element.style.display = "none";
+function hideView(view) {
+  view.style.display = "none"
+}
+
+function clearInputField(field) {
+field.value = ""
+}
+
+function clearAuthFields() {
+clearInputField(emailInputEl)
+clearInputField(passwordInputEl)
 }
